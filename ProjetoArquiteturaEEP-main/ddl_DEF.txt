@@ -1,0 +1,220 @@
+-- ============================================
+--   CRIAÇÃO DO BANCO DE DADOS AUTOESCOLA
+-- ============================================
+
+CREATE SCHEMA IF NOT EXISTS `autoescola`
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_0900_ai_ci;
+USE `autoescola`;
+
+-- ============================================
+--   TABELA: USERS (para login JWT)
+--   CORREÇÃO: id_user alterado para BIGINT para corresponder ao Long do Java.
+-- ============================================
+CREATE TABLE IF NOT EXISTS users (
+  id_user BIGINT NOT NULL AUTO_INCREMENT,
+  username VARCHAR(50) NOT NULL,
+  email VARCHAR(100) NOT NULL,
+  password VARCHAR(255) NOT NULL,
+  enabled BOOLEAN NOT NULL DEFAULT TRUE,
+  PRIMARY KEY (id_user),
+  UNIQUE INDEX username_UNIQUE (username ASC) VISIBLE,
+  UNIQUE INDEX email_UNIQUE (email ASC) VISIBLE
+)
+ENGINE = InnoDB
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
+
+-- ============================================
+--   TABELA: ROLES (papéis do sistema)
+--   MANUTENÇÃO: Mantido como INT para corresponder ao Integer do Java.
+-- ============================================
+CREATE TABLE IF NOT EXISTS roles (
+  id_role INT NOT NULL AUTO_INCREMENT,
+  name VARCHAR(50) NOT NULL,
+  PRIMARY KEY (id_role),
+  UNIQUE INDEX name_UNIQUE (name ASC) VISIBLE
+)
+ENGINE = InnoDB
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
+
+-- ============================================
+--   TABELA: USER_ROLES (relação N:N)
+--   CORREÇÃO: user_id alterado para BIGINT para corresponder a users(id_user).
+-- ============================================
+CREATE TABLE IF NOT EXISTS user_roles (
+  user_id BIGINT NOT NULL,
+  role_id INT NOT NULL,
+  PRIMARY KEY (user_id, role_id),
+  CONSTRAINT fk_userroles_user
+    FOREIGN KEY (user_id) REFERENCES users (id_user)
+    ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT fk_userroles_role
+    FOREIGN KEY (role_id) REFERENCES roles (id_role)
+    ON DELETE CASCADE ON UPDATE CASCADE
+)
+ENGINE = InnoDB
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
+
+-- ============================================
+--   TABELA: INSTRUTOR
+--   CORREÇÃO: id_instrutor e user_id alterados para BIGINT.
+-- ============================================
+CREATE TABLE IF NOT EXISTS instrutor (
+  id_instrutor BIGINT NOT NULL AUTO_INCREMENT,
+  pnome_instrutor VARCHAR(15) NOT NULL,
+  snome_instrutor VARCHAR(25) NOT NULL,
+  user_id BIGINT NOT NULL,
+  PRIMARY KEY (id_instrutor),
+  CONSTRAINT fk_instrutor_user
+    FOREIGN KEY (user_id) REFERENCES users (id_user)
+    ON DELETE CASCADE ON UPDATE CASCADE
+)
+ENGINE = InnoDB
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
+
+-- ============================================
+--   TABELA: ALUNO
+--   CORREÇÃO: id_aluno e user_id alterados para BIGINT.
+-- ============================================
+CREATE TABLE IF NOT EXISTS aluno (
+  id_aluno BIGINT NOT NULL AUTO_INCREMENT,
+  cpf_aluno VARCHAR(11) NOT NULL,
+  nascimento_aluno DATE,
+  data_registro_aluno DATE NOT NULL,
+  celular VARCHAR(15) NOT NULL,
+  bairro VARCHAR(25),
+  rua VARCHAR(25),
+  pnome_aluno VARCHAR(15) NOT NULL,
+  snome_aluno VARCHAR(25) NOT NULL,
+  user_id BIGINT NOT NULL,
+  PRIMARY KEY (id_aluno),
+  UNIQUE INDEX cpf_aluno_UNIQUE (cpf_aluno ASC) VISIBLE,
+  CONSTRAINT fk_aluno_user
+    FOREIGN KEY (user_id) REFERENCES users (id_user)
+    ON DELETE CASCADE ON UPDATE CASCADE
+)
+ENGINE = InnoDB
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
+
+-- ============================================
+--   TABELA: AVALIACAO
+--   CORREÇÃO: id_avaliacao alterado para BIGINT.
+-- ============================================
+CREATE TABLE IF NOT EXISTS avaliacao (
+  id_avaliacao BIGINT NOT NULL AUTO_INCREMENT,
+  nota_avaliacao INT NOT NULL,
+  tipo_avaliacao VARCHAR(15) NOT NULL,
+  desc_avaliacao VARCHAR(100),
+  PRIMARY KEY (id_avaliacao)
+)
+ENGINE = InnoDB
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
+
+-- ============================================
+--   TABELA: AGENDAMENTO_AULA
+--   CORREÇÃO: id_agendamento e todas as FKs (exceto role_id) para BIGINT.
+-- ============================================
+CREATE TABLE IF NOT EXISTS agendamento_aula (
+  id_agendamento BIGINT NOT NULL AUTO_INCREMENT,
+  data_agendamento DATETIME NOT NULL,
+  situacao_agendamento ENUM('AGENDADO', 'CANCELADO', 'CONCLUIDO','AUSENTE') NOT NULL,
+  instrutor_id BIGINT NOT NULL,
+  aluno_id BIGINT NOT NULL,
+  avaliacao_id BIGINT,
+  PRIMARY KEY (id_agendamento),
+  CONSTRAINT fk_agendamento_instrutor
+    FOREIGN KEY (instrutor_id) REFERENCES instrutor (id_instrutor)
+    ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT fk_agendamento_aluno
+    FOREIGN KEY (aluno_id) REFERENCES aluno (id_aluno)
+    ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT fk_agendamento_avaliacao
+    FOREIGN KEY (avaliacao_id) REFERENCES avaliacao (id_avaliacao)
+    ON DELETE SET NULL ON UPDATE CASCADE
+)
+ENGINE = InnoDB
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
+
+-- ============================================
+--   TABELA: CNH
+--   CORREÇÃO: id_cnh e aluno_id alterados para BIGINT.
+-- ============================================
+CREATE TABLE IF NOT EXISTS cnh (
+  id_cnh BIGINT NOT NULL AUTO_INCREMENT,
+  tipo_cnh VARCHAR(2) NOT NULL,
+  data_registro_cnh DATE NOT NULL,
+  aluno_id BIGINT NOT NULL,
+  PRIMARY KEY (id_cnh),
+  UNIQUE INDEX cnh_aluno_UNIQUE (aluno_id ASC) VISIBLE,
+  CONSTRAINT fk_cnh_aluno
+    FOREIGN KEY (aluno_id) REFERENCES aluno (id_aluno)
+    ON DELETE CASCADE ON UPDATE CASCADE
+)
+ENGINE = InnoDB
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
+
+-- ============================================
+--   TABELA: EXAME
+--   CORREÇÃO: id_exame e aluno_id alterados para BIGINT.
+-- ============================================
+CREATE TABLE IF NOT EXISTS exame (
+  id_exame BIGINT NOT NULL AUTO_INCREMENT,
+  data_exame DATE NOT NULL,
+  resultado_exame ENUM('APROVADO', 'REPROVADO', 'PENDENTE', 'AGENDADO') NOT NULL,
+  aluno_id BIGINT NOT NULL,
+  PRIMARY KEY (id_exame),
+  CONSTRAINT fk_exame_aluno
+    FOREIGN KEY (aluno_id) REFERENCES aluno (id_aluno)
+    ON DELETE CASCADE ON UPDATE CASCADE
+)
+ENGINE = InnoDB
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
+
+-- ============================================
+--   TABELA: VEICULO
+--   CORREÇÃO: id_veiculo alterado para BIGINT.
+-- ============================================
+CREATE TABLE IF NOT EXISTS veiculo (
+  id_veiculo BIGINT NOT NULL AUTO_INCREMENT,
+  tipo_veiculo VARCHAR(15) NOT NULL,
+  marca_veiculo VARCHAR(15) NOT NULL,
+  placa_veiculo VARCHAR(15) NOT NULL,
+  vencimento_documento DATE NOT NULL,
+  PRIMARY KEY (id_veiculo),
+  UNIQUE INDEX placa_veiculo_UNIQUE (placa_veiculo ASC) VISIBLE
+)
+ENGINE = InnoDB
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
+
+-- ============================================
+--   TABELA: VERIFICACAO_VEICULO
+--   CORREÇÃO: id_verificacao, veiculo_id e instrutor_id alterados para BIGINT.
+-- ============================================
+CREATE TABLE IF NOT EXISTS verificacao_veiculo (
+  id_verificacao BIGINT NOT NULL AUTO_INCREMENT,
+  is_solucionado BOOLEAN NOT NULL,
+  desc_verificacao VARCHAR(200) NOT NULL,
+  tipo_verificacao ENUM('PREVENTIVA', 'PREDITIVA', 'CORRETIVA', 'DETECTIVA', 'EMERGENCIA') NOT NULL,
+  veiculo_id BIGINT NOT NULL,
+  instrutor_id BIGINT NOT NULL,
+  PRIMARY KEY (id_verificacao),
+  CONSTRAINT fk_verificacao_veiculo
+    FOREIGN KEY (veiculo_id) REFERENCES veiculo (id_veiculo)
+    ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT fk_verificacao_instrutor
+    FOREIGN KEY (instrutor_id) REFERENCES instrutor (id_instrutor)
+    ON DELETE CASCADE ON UPDATE CASCADE
+)
+ENGINE = InnoDB
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;

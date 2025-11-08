@@ -1,0 +1,131 @@
+-- Use o banco de dados criado
+USE `autoescola`;
+
+UPDATE users  '$2a$10$PFR8VfwPtkt/9rEhdQ5C/eUE35c2o.ig83oDp6NFfZLXF2/uOFU5O'
+SET password =  
+WHERE id_user = 3;
+
+
+-- =================================================================================================
+--                              INSERÇÃO DE DADOS (CORRIGIDA)
+-- =================================================================================================
+
+-- ----------------------------------------------------
+-- 1. INSERÇÃO DAS ROLES (Papéis)
+-- ----------------------------------------------------
+INSERT INTO roles (name) VALUES ('ALUNO');
+INSERT INTO roles (name) VALUES ('INSTRUTOR');
+INSERT INTO roles (name) VALUES ('ADMIN');
+-- ID 1: ALUNO, ID 2: INSTRUTOR, ID 3: ADMIN
+
+
+-- ----------------------------------------------------
+-- 2. INSERÇÃO DOS USERS (Usuários de Login)
+-- Senha: aluno.teste = 123456, instrutor.maria= abcdef, instrutor.joao = batata, OBS:'$2a$10$dXJ3SWc..q2/M.s0c.G.s.on1.r.r.S.e.a.51.f.d.b.b.C' é uma hash
+-- inválida
+-- ----------------------------------------------------
+-- user_id 1: Aluno de Teste (Pedro)
+INSERT INTO users (username, email, password, enabled) 
+VALUES ('aluno.teste', 'aluno.teste@autoescola.com', '$2a$10$n1bCS2D82GIy4jTXBqZbIOgfEci3HSyiUBqGYxrwpP00lxgo/P52C', TRUE);
+-- user_id 2: Instrutor Padrão (Maria)
+INSERT INTO users (username, email, password, enabled) 
+VALUES ('instrutor.maria', 'maria.souza@autoescola.com', '$2a$10$X/45mSSAjeBhrG8LyN31SeuJxOqJmuP6AMQGRfZyWdohDGseZ.F86', TRUE);
+-- user_id 3: Instrutor João
+INSERT INTO users (username, email, password, enabled) 
+VALUES ('instrutor.joao', 'joao.silva@autoescola.com', '$2a$10$dXJ3SWc..q2/M.s0c.G.s.on1.r.r.S.e.a.51.f.d.b.b.C', TRUE);
+-- user_id 4: Admin
+INSERT INTO users (username, email, password, enabled) 
+VALUES ('admin.auto', 'admin@autoescola.com', '$2a$10$dXJ3SWc..q2/M.s0c.G.s.on1.r.r.S.e.a.51.f.d.b.b.C', TRUE);
+-- user_id 5: Novo User para Aluna Ana (CORREÇÃO APLICADA)
+INSERT INTO users (username, email, password, enabled) 
+VALUES ('aluno.ana', 'ana.ferreira.nova@autoescola.com', '$2a$10$dXJ3SWc..q2/M.s0c.G.s.on1.r.r.S.e.a.51.f.d.b.b.C', TRUE);
+
+
+-- ----------------------------------------------------
+-- 3. INSERÇÃO DAS USER_ROLES (Associação Usuário <-> Papel)
+-- ----------------------------------------------------
+-- Aluno.teste (user_id 1) é um ALUNO (id_role 1)
+INSERT INTO user_roles (user_id, role_id) VALUES (1, 1);
+-- Maria (user_id 2) é uma INSTRUTOR (id_role 2)
+INSERT INTO user_roles (user_id, role_id) VALUES (2, 2);
+-- João (user_id 3) é um INSTRUTOR (id_role 2)
+INSERT INTO user_roles (user_id, role_id) VALUES (3, 2);
+-- Admin (user_id 4) é um ADMIN (id_role 3)
+INSERT INTO user_roles (user_id, role_id) VALUES (4, 3);
+-- Aluno.ana (user_id 5) é um ALUNO (id_role 1) (CORREÇÃO APLICADA)
+INSERT INTO user_roles (user_id, role_id) VALUES (5, 1);
+
+-- ----------------------------------------------------
+-- 4. INSERÇÃO DE INSTRUTORES
+-- ----------------------------------------------------
+-- id_instrutor 1: Maria (associada a user_id 2)
+INSERT INTO instrutor (pnome_instrutor, snome_instrutor, user_id) 
+VALUES ('Maria', 'Souza', 2);
+-- id_instrutor 2: João (associado a user_id 3)
+INSERT INTO instrutor (pnome_instrutor, snome_instrutor, user_id) 
+VALUES ('João', 'Silva', 3);
+
+-- ----------------------------------------------------
+-- 5. INSERÇÃO DE ALUNOS
+-- ----------------------------------------------------
+-- id_aluno 1: Pedro (associado a user_id 1)
+INSERT INTO aluno (cpf_aluno, nascimento_aluno, data_registro_aluno, celular, bairro, rua, pnome_aluno, snome_aluno, user_id) 
+VALUES ('11122233344', '1995-05-10', CURDATE(), '999887766', 'Centro', 'Rua Principal', 'Pedro', 'Santos', 1);
+-- id_aluno 2: Ana (associado a user_id 5) (CORREÇÃO APLICADA)
+INSERT INTO aluno (cpf_aluno, nascimento_aluno, data_registro_aluno, celular, bairro, rua, pnome_aluno, snome_aluno, user_id) 
+VALUES ('55566677788', '2000-11-20', CURDATE(), '999554433', 'Jardim', 'Av. Secundária', 'Ana', 'Ferreira', 5);
+
+-- ----------------------------------------------------
+-- 6. INSERÇÃO DE VEICULOS
+-- ----------------------------------------------------
+-- id_veiculo 1: Carro (Fiat Palio)
+INSERT INTO veiculo (tipo_veiculo, marca_veiculo, placa_veiculo, vencimento_documento) 
+VALUES ('Carro', 'Fiat', 'ABC-1234', '2025-10-01');
+-- id_veiculo 2: Moto (Honda Titan)
+INSERT INTO veiculo (tipo_veiculo, marca_veiculo, placa_veiculo, vencimento_documento) 
+VALUES ('Moto', 'Honda', 'XYZ-5678', '2024-05-15');
+
+-- ----------------------------------------------------
+-- 7. INSERÇÃO DE AVALIAÇÕES
+-- ----------------------------------------------------
+-- id_avaliacao 1: Nota para a primeira aula
+INSERT INTO avaliacao (nota_avaliacao, tipo_avaliacao, desc_avaliacao) 
+VALUES (9, 'TEORICA', 'Excelente domínio das regras de trânsito.');
+-- id_avaliacao 2: Nota para a aula de manobra
+INSERT INTO avaliacao (nota_avaliacao, tipo_avaliacao, desc_avaliacao) 
+VALUES (7, 'PRATICA', 'Precisa melhorar na baliza.');
+
+-- ----------------------------------------------------
+-- 8. INSERÇÃO DE AGENDAMENTOS
+-- ----------------------------------------------------
+-- id_agendamento 1: Concluído (Pedro com Maria)
+INSERT INTO agendamento_aula (data_agendamento, situacao_agendamento, instrutor_id, aluno_id, avaliacao_id) 
+VALUES ('2025-10-25 10:00:00', 'CONCLUIDO', 1, 1, 1);
+-- id_agendamento 2: Agendado (Pedro com João)
+INSERT INTO agendamento_aula (data_agendamento, situacao_agendamento, instrutor_id, aluno_id, avaliacao_id) 
+VALUES ('2025-12-05 14:00:00', 'AGENDADO', 2, 1, NULL);
+-- id_agendamento 3: Cancelado (Ana com Maria)
+INSERT INTO agendamento_aula (data_agendamento, situacao_agendamento, instrutor_id, aluno_id, avaliacao_id) 
+VALUES ('2025-11-01 08:00:00', 'CANCELADO', 1, 2, NULL);
+
+-- ----------------------------------------------------
+-- 9. INSERÇÃO DE CNH
+-- ----------------------------------------------------
+INSERT INTO cnh (tipo_cnh, data_registro_cnh, aluno_id) 
+VALUES ('AB', '2024-01-01', 1);
+
+-- ----------------------------------------------------
+-- 10. INSERÇÃO DE EXAMES
+-- ----------------------------------------------------
+INSERT INTO exame (data_exame, resultado_exame, aluno_id) 
+VALUES ('2025-09-01', 'APROVADO', 1);
+INSERT INTO exame (data_exame, resultado_exame, aluno_id) 
+VALUES ('2025-10-01', 'REPROVADO', 2);
+
+-- ----------------------------------------------------
+-- 11. INSERÇÃO DE VERIFICAÇÃO_VEICULO
+-- ----------------------------------------------------
+INSERT INTO verificacao_veiculo (is_solucionado, desc_verificacao, tipo_verificacao, veiculo_id, instrutor_id) 
+VALUES (FALSE, 'Pneu dianteiro esquerdo com pressão baixa.', 'PREVENTIVA', 1, 1);
+INSERT INTO verificacao_veiculo (is_solucionado, desc_verificacao, tipo_verificacao, veiculo_id, instrutor_id) 
+VALUES (TRUE, 'Lâmpada do farol trocada.', 'CORRETIVA', 2, 2);
